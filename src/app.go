@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"go-todo/shared"
@@ -12,6 +13,8 @@ import (
 	"syscall"
 	"time"
 
+	"go-todo/user"
+
 	"github.com/google/uuid"
 )
 
@@ -20,7 +23,8 @@ type CurrentUser struct {
 }
 
 type AppOptions struct {
-	address string
+	address      string
+	tokensSecret string
 }
 
 const USER_KEY = "user"
@@ -60,8 +64,9 @@ func authMiddleware() Middleware {
 			if len(authHeader) == 0 {
 				authHeader = r.URL.Query()["Authorization"]
 			}
+			publicEndpoint := shared.IsEndpointPublic(r.URL.Path)
 			//TODO: real checks!
-			if len(authHeader) == 0 {
+			if !publicEndpoint && len(authHeader) == 0 {
 				w.WriteHeader(401)
 			} else {
 				h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), USER_KEY,
@@ -83,7 +88,7 @@ var server *http.Server
 func main() {
 	fmt.Println("Starting TODO app!")
 
-	Start(AppOptions{":8080"})
+	Start(AppOptions{address: ":8080", tokensSecret: "9ab00d"})
 
 	fmt.Println("Waiting for ending signal...")
 
@@ -99,6 +104,17 @@ func main() {
 
 func Start(options AppOptions) {
 	server = &http.Server{Addr: options.address}
+
+	tokensSecretBytes, err := hex.DecodeString(options.tokensSecret)
+	if err != nil {
+		panic(err)
+	}
+
+	userModule := user.Module(tokensSecretBytes)
+
+	for p, h := range userModule.Handlers {
+		registerHandler(p, h)
+	}
 
 	registerHandler("/", func(w http.ResponseWriter, r *http.Request) {
 		currentUser := r.Context().Value(USER_KEY)
