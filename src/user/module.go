@@ -29,8 +29,12 @@ func Module(tokensSecret []byte) UserModule {
 	router.Post("/sign-up", func(w http.ResponseWriter, r *http.Request) {
 		var command CreateUserCommand
 		shared.MustReadJsonBody(r, &command)
-		id := createUserHandler.handle(command)
-		shared.WriteJsonResponse(w, 201, SignInResponse{id})
+		result := createUserHandler.handle(command)
+		if result.IsSuccess() {
+			shared.WriteJsonResponse(w, 201, SignInResponse{result.Value()})
+		} else {
+			shared.WriteJsonErrorResponse(w, 400, result.Error())
+		}
 	})
 
 	router.Post("/sign-in", func(w http.ResponseWriter, r *http.Request) {

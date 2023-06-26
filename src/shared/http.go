@@ -24,6 +24,16 @@ func WriteJsonResponse(w http.ResponseWriter, status int, response any) {
 	w.Write(MustMarshalJson(response))
 }
 
+func WriteJsonErrorResponse(w http.ResponseWriter, status int, error error) {
+	var response any
+	if v, ok := error.(AppError); ok {
+		response = NewApiError([]string{error.Error()}, v.Message)
+	} else {
+		response = NewApiError([]string{error.Error()}, "")
+	}
+	WriteJsonResponse(w, status, response)
+}
+
 func MustMarshalJson(response any) []byte {
 	jsonResp, err := json.Marshal(response)
 	if err != nil {
