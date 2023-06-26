@@ -4,11 +4,12 @@ import (
 	"go-todo/shared"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 type UserModule struct {
-	Handlers map[string]http.HandlerFunc
+	Router http.Handler
 }
 
 type SignInResponse struct {
@@ -23,21 +24,21 @@ func Module(tokensSecret []byte) UserModule {
 
 	signUpHandler := NewSignUpHandler(authTokensComponent)
 
-	handlers := make(map[string]http.HandlerFunc)
+	router := chi.NewRouter()
 
-	handlers["/users/sign-up"] = func(w http.ResponseWriter, r *http.Request) {
+	router.Post("/sign-up", func(w http.ResponseWriter, r *http.Request) {
 		var command CreateUserCommand
 		shared.MustReadJsonBody(r, &command)
 		id := createUserHandler.handle(command)
 		shared.WriteJsonResponse(w, 201, SignInResponse{id})
-	}
+	})
 
-	handlers["/users/sign-in"] = func(w http.ResponseWriter, r *http.Request) {
+	router.Post("/sign-in", func(w http.ResponseWriter, r *http.Request) {
 		var command SignUpCommand
 		shared.MustReadJsonBody(r, &command)
 		response := signUpHandler.handle(command)
 		shared.WriteJsonOkResponse(w, response)
-	}
+	})
 
-	return UserModule{handlers}
+	return UserModule{router}
 }

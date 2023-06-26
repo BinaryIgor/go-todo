@@ -15,6 +15,8 @@ import (
 
 	"go-todo/user"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 )
 
@@ -31,33 +33,31 @@ const USER_KEY = "user"
 
 type Middleware func(http.Handler) http.Handler
 
-func recoveryMiddleware() Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				if r := recover(); r != nil {
-					fmt.Println("Recovered in middleware", r)
-					shared.WriteJsonResponse(w, 500, struct {
-						Name string
-					}{"Error"})
-				}
-			}()
-			h.ServeHTTP(w, r)
-		})
-	}
+func recoveryMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("Recovered in middleware", r)
+				shared.WriteJsonResponse(w, 500, struct {
+					Name string
+				}{"Error"})
+			}
+		}()
+		h.ServeHTTP(w, r)
+	})
 }
 
-func loggingMiddleware() Middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			log.Println("Before request")
-			defer log.Println("After request....")
-			h.ServeHTTP(w, r)
-		})
-	}
-}
+// func loggingMiddleware() Middleware {
+// 	return func(h http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 			log.Println("Before request")
+// 			defer log.Println("After request....")
+// 			h.ServeHTTP(w, r)
+// 		})
+// 	}
+// }
 
-func authMiddleware() Middleware {
+func authMiddleware_() Middleware {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Values("Authorization")
@@ -74,6 +74,23 @@ func authMiddleware() Middleware {
 			}
 		})
 	}
+}
+
+func authMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Values("Authorization")
+		if len(authHeader) == 0 {
+			authHeader = r.URL.Query()["Authorization"]
+		}
+		publicEndpoint := shared.IsEndpointPublic(r.URL.Path)
+		//TODO: real checks!
+		if !publicEndpoint && len(authHeader) == 0 {
+			w.WriteHeader(401)
+		} else {
+			h.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), USER_KEY,
+				CurrentUser{uuid.New()})))
+		}
+	})
 }
 
 func newHandler(h http.Handler, middlewares ...Middleware) http.Handler {
@@ -103,7 +120,12 @@ func main() {
 }
 
 func Start(options AppOptions) {
-	server = &http.Server{Addr: options.address}
+	router := chi.NewRouter()
+
+	server = &http.Server{Addr: options.address, Handler: router}
+
+	router.Use(middleware.Logger, middleware.Timeout(60*time.Second),
+		recoveryMiddleware, authMiddleware)
 
 	tokensSecretBytes, err := hex.DecodeString(options.tokensSecret)
 	if err != nil {
@@ -112,19 +134,7 @@ func Start(options AppOptions) {
 
 	userModule := user.Module(tokensSecretBytes)
 
-	for p, h := range userModule.Handlers {
-		registerHandler(p, h)
-	}
-
-	registerHandler("/", func(w http.ResponseWriter, r *http.Request) {
-		currentUser := r.Context().Value(USER_KEY)
-		fmt.Println("Current user: ", currentUser)
-		// panic("test")
-		shared.WriteJsonOkResponse(w, struct {
-			Name string
-		}{"User"})
-
-	})
+	router.Mount("/users", userModule.Router)
 
 	go func() {
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
@@ -134,10 +144,10 @@ func Start(options AppOptions) {
 	}()
 }
 
-func registerHandler(path string, h http.HandlerFunc) {
-	http.Handle(path, newHandler(h, recoveryMiddleware(), loggingMiddleware(),
-		authMiddleware()))
-}
+// func registerHandler(path string, h http.HandlerFunc) {
+// 	http.Handle(path, newHandler(h, recoveryMiddleware(), loggingMiddleware(),
+// 		authMiddleware()))
+// }
 
 func Stop() {
 	if server == nil {
