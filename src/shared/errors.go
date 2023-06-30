@@ -1,19 +1,34 @@
 package shared
 
-import "errors"
-
 type AppError struct {
-	error
+	Code    string
 	Message string
 }
 
-func NewAppErrorWithMessage(error error, message string) AppError {
-	return AppError{error, message}
+func (e AppError) Error() string {
+	return e.Message
 }
 
-func NewAppError(error error) AppError {
-	return AppError{error, ""}
+func (e AppError) Throw() {
+	panic(e)
 }
 
-// ErrNotFound not found
-var ErrNotFound = errors.New("Not found")
+type ValidationError struct {
+	AppError
+}
+
+func NewValidationError(code string, message string) ValidationError {
+	return ValidationError{AppError{code, message}}
+}
+
+func ThrowValidationError(code string, message string) {
+	NewValidationError(code, message).Throw()
+}
+
+type NotFoundError struct {
+	AppError
+}
+
+func NewNotFoundError(code string, message string) NotFoundError {
+	return NotFoundError{AppError{code, message}}
+}

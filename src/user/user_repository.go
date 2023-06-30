@@ -1,15 +1,14 @@
 package user
 
 import (
-	"go-todo/shared"
 	"sync"
 
 	"github.com/google/uuid"
 )
 
 type UserRepository interface {
-	Create(user User) error
-	FindByName(name string) (*User, error)
+	Create(user User)
+	FindByName(name string) *User
 }
 
 type inMemoryUserRepository struct {
@@ -17,14 +16,14 @@ type inMemoryUserRepository struct {
 	mu sync.Mutex
 }
 
-func New() inMemoryUserRepository {
+func NewUserRepository() inMemoryUserRepository {
 	return inMemoryUserRepository{db: make(map[uuid.UUID]User)}
 }
 
-func (r *inMemoryUserRepository) Create(user User) error {
-	return shared.ErrNotFound
+func (r *inMemoryUserRepository) Create(user User) {
+
 }
 
-func (r *inMemoryUserRepository) FindByName(name string) (*User, error) {
-	return nil, shared.ErrNotFound
+func (r *inMemoryUserRepository) FindByName(name string) *User {
+	return nil
 }

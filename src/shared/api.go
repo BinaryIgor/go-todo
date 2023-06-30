@@ -3,8 +3,8 @@ package shared
 import "strings"
 
 type ApiError struct {
-	errors  []string
-	message string
+	Errors  []string `json:"errors"`
+	Message string   `json:"message"`
 }
 
 func NewApiError(errors []string, message string) ApiError {

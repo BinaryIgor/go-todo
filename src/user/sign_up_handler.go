@@ -25,8 +25,8 @@ func NewSignUpHandler(tokensComponent AuthTokensComponent) SignUpHandler {
 	return SignUpHandler{tokensComponent}
 }
 
-func (h *SignUpHandler) handle(command SignUpCommand) SignUpResponse {
+func (h *SignUpHandler) Handle(command SignUpCommand) SignUpResponse {
 	fmt.Println("Sign up user")
 	id := uuid.New()
-	return SignUpResponse{id, "Some user", h.tokensComponent.generateTokens(id)}
+	return SignUpResponse{id, "Some user", h.tokensComponent.CreateTokens(id)}
 }

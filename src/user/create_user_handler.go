@@ -1,8 +1,6 @@
 package user
 
 import (
-	"fmt"
-
 	"go-todo/shared"
 
 	"github.com/google/uuid"
@@ -17,23 +15,13 @@ type CreateUserHandler struct {
 	userRepository UserRepository
 }
 
-func (h *CreateUserHandler) handle(command CreateUserCommand) shared.Result[uuid.UUID] {
-	fmt.Println("Creating new user!", command)
-	result := validateCommand(command)
-	if result.IsFailure() {
-		return shared.FailureResult[uuid.UUID](result.Error())
-	}
-
+func (h *CreateUserHandler) Handle(command CreateUserCommand) uuid.UUID {
+	validateCommand(command)
 	newId := uuid.New()
-	err := h.userRepository.Create(User{newId, command.Name, command.Password})
-	if err != nil {
-		return shared.FailureResult[uuid.UUID](shared.NewAppErrorWithMessage(err, "Failure to create user"))
-	}
-
-	return shared.SuccessResult(newId)
+	h.userRepository.Create(User{newId, command.Name, command.Password})
+	return newId
 }
 
-func validateCommand(command CreateUserCommand) shared.EmptyResult {
-	//TODO: validate
-	return shared.SuccessEmptyResult()
+func validateCommand(command CreateUserCommand) {
+	shared.NewValidationError("INVALID_NAME", "Name is not valid").Throw()
 }

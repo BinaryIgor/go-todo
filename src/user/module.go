@@ -20,7 +20,7 @@ func Module(tokensSecret []byte) UserModule {
 	createUserHandler := CreateUserHandler{}
 	//TODO: use it
 
-	authTokensComponent := AuthTokensComponent{tokensSecret}
+	authTokensComponent := NewAuthTokensComponent(tokensSecret)
 
 	signUpHandler := NewSignUpHandler(authTokensComponent)
 
@@ -29,18 +29,14 @@ func Module(tokensSecret []byte) UserModule {
 	router.Post("/sign-up", func(w http.ResponseWriter, r *http.Request) {
 		var command CreateUserCommand
 		shared.MustReadJsonBody(r, &command)
-		result := createUserHandler.handle(command)
-		if result.IsSuccess() {
-			shared.WriteJsonResponse(w, 201, SignInResponse{result.Value()})
-		} else {
-			shared.WriteJsonErrorResponse(w, 400, result.Error())
-		}
+		userId := createUserHandler.Handle(command)
+		shared.WriteJsonResponse(w, 201, SignInResponse{userId})
 	})
 
 	router.Post("/sign-in", func(w http.ResponseWriter, r *http.Request) {
 		var command SignUpCommand
 		shared.MustReadJsonBody(r, &command)
-		response := signUpHandler.handle(command)
+		response := signUpHandler.Handle(command)
 		shared.WriteJsonOkResponse(w, response)
 	})
 

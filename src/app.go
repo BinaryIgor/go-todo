@@ -38,9 +38,7 @@ func recoveryMiddleware(h http.Handler) http.Handler {
 		defer func() {
 			if r := recover(); r != nil {
 				fmt.Println("Recovered in middleware", r)
-				shared.WriteJsonResponse(w, 500, struct {
-					Name string
-				}{"Error"})
+				shared.WriteJsonErrorResponse(w, r)
 			}
 		}()
 		h.ServeHTTP(w, r)
