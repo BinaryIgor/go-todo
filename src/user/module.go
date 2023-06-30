@@ -4,23 +4,26 @@ import (
 	"go-todo/shared"
 	"net/http"
 
+	"encoding/hex"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
-
-type UserModule struct {
-	Router http.Handler
-}
 
 type SignInResponse struct {
 	Id uuid.UUID `json:"id"`
 }
 
-func Module(tokensSecret []byte) UserModule {
+func Module(tokensSecret string) shared.AppModule {
+	tokensSecretBytes, err := hex.DecodeString(tokensSecret)
+	if err != nil {
+		panic(err)
+	}
+
 	createUserHandler := CreateUserHandler{}
 	//TODO: use it
 
-	authTokensComponent := NewAuthTokensComponent(tokensSecret)
+	authTokensComponent := NewAuthTokensComponent(tokensSecretBytes)
 
 	signUpHandler := NewSignUpHandler(authTokensComponent)
 
@@ -40,5 +43,5 @@ func Module(tokensSecret []byte) UserModule {
 		shared.WriteJsonOkResponse(w, response)
 	})
 
-	return UserModule{router}
+	return shared.AppModule{router, "/users"}
 }
