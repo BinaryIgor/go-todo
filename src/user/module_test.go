@@ -17,20 +17,25 @@ func TestMain(m *testing.M) {
 }
 
 func TestShouldReturnBadRequestWithInvalidCreateUserCommands(t *testing.T) {
-	httpClient := test.NewHttpClient(t, appPort)
+	httpClient := test.NewHttpClient[shared.ApiError](t, appPort)
 
-	type test struct {
+	type TestCase struct {
 		command  CreateUserCommand
 		response shared.ApiError
 	}
 
-	tests := []test{
-		{CreateUserCommand{"", ""}, shared.NewApiError("INVALID_NAME", "Name is not valid")},
+	tests := []TestCase{
+		{CreateUserCommand{"", ""}, test.ApiErrorFromAppError(NewInvalidUserNameError(""))},
+		{CreateUserCommand{"A", ""}, test.ApiErrorFromAppError(NewInvalidUserNameError("A"))},
+		{CreateUserCommand{"A4", ""}, test.ApiErrorFromAppError(NewInvalidUserNameError("A4"))},
+		{CreateUserCommand{"99", ""}, test.ApiErrorFromAppError(NewInvalidUserNameError("99"))},
+		{CreateUserCommand{"Alaa!", ""}, test.ApiErrorFromAppError(NewInvalidUserNameError("Alaa!"))},
 	}
 
 	for _, tc := range tests {
 		fmt.Println("Running test...")
 		r := httpClient.PostJson("users/sign-up", tc.command)
-		httpClient.ExpectResponseCode(r, 400)
+		r.ExpectStatusCode(400)
+		r.ExpectJson(tc.response)
 	}
 }

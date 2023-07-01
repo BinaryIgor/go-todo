@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: this is sign in, not sign up!
 type SignUpCommand struct {
 	Name     string
 	Password string

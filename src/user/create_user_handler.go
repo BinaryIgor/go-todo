@@ -1,8 +1,6 @@
 package user
 
 import (
-	"go-todo/shared"
-
 	"github.com/google/uuid"
 )
 
@@ -23,5 +21,5 @@ func (h *CreateUserHandler) Handle(command CreateUserCommand) uuid.UUID {
 }
 
 func validateCommand(command CreateUserCommand) {
-	shared.NewValidationError("INVALID_NAME", "Name is not valid").Throw()
+	NewInvalidUserNameError(command.Name).Throw()
 }

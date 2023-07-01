@@ -31,7 +31,7 @@ func WriteJsonErrorResponse(w http.ResponseWriter, err any) {
 	var response any
 	var status int
 	if v, ok := err.(AppError); ok {
-		response = NewApiError(v.Code, v.Message)
+		response = NewApiError(v.Code(), v.Message())
 		status = statusFromError(v)
 	} else if v, ok := err.(error); ok {
 		response = NewApiError(UNHANDLED_ERROR, v.Error())

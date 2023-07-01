@@ -1,16 +1,35 @@
 package shared
 
-type AppError struct {
-	Code    string
-	Message string
+type AppError interface {
+	error
+	Code() string
+	Message() string
+	Throw()
 }
 
-func (e AppError) Error() string {
-	return e.Message
+type baseAppError struct {
+	code    string
+	message string
 }
 
-func (e AppError) Throw() {
+func (e *baseAppError) Error() string {
+	return e.message
+}
+
+func (e *baseAppError) Code() string {
+	return e.code
+}
+
+func (e *baseAppError) Message() string {
+	return e.message
+}
+
+func (e *baseAppError) Throw() {
 	panic(e)
+}
+
+func NewAppError(code string, message string) AppError {
+	return &baseAppError{code, message}
 }
 
 type ValidationError struct {
@@ -18,7 +37,7 @@ type ValidationError struct {
 }
 
 func NewValidationError(code string, message string) ValidationError {
-	return ValidationError{AppError{code, message}}
+	return ValidationError{&baseAppError{code, message}}
 }
 
 func ThrowValidationError(code string, message string) {
@@ -30,5 +49,5 @@ type NotFoundError struct {
 }
 
 func NewNotFoundError(code string, message string) NotFoundError {
-	return NotFoundError{AppError{code, message}}
+	return NotFoundError{&baseAppError{code, message}}
 }
