@@ -16,12 +16,12 @@ type inMemoryUserRepository struct {
 	mu sync.Mutex
 }
 
-func NewUserRepository() inMemoryUserRepository {
-	return inMemoryUserRepository{db: make(map[uuid.UUID]User)}
+func NewUserRepository() UserRepository {
+	return &inMemoryUserRepository{db: make(map[uuid.UUID]User)}
 }
 
 func (r *inMemoryUserRepository) Create(user User) {
-	
+
 }
 
 func (r *inMemoryUserRepository) FindByName(name string) *User {

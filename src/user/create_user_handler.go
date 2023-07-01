@@ -21,5 +21,10 @@ func (h *CreateUserHandler) Handle(command CreateUserCommand) uuid.UUID {
 }
 
 func validateCommand(command CreateUserCommand) {
-	NewInvalidUserNameError(command.Name).Throw()
+	if !IsNameValid(command.Name) {
+		NewInvalidUserNameError(command.Name).Throw()
+	}
+	if !IsPasswordValid(command.Password) {
+		InvalidUserPasswordError.Throw()
+	}
 }

@@ -20,8 +20,9 @@ func Module(tokensSecret string) shared.AppModule {
 		panic(err)
 	}
 
-	createUserHandler := CreateUserHandler{}
-	//TODO: use it
+	userRepository := NewUserRepository()
+
+	createUserHandler := CreateUserHandler{userRepository}
 
 	authTokensComponent := NewAuthTokensComponent(tokensSecretBytes)
 
@@ -43,5 +44,5 @@ func Module(tokensSecret string) shared.AppModule {
 		shared.WriteJsonOkResponse(w, response)
 	})
 
-	return shared.AppModule{router, "/users"}
+	return shared.AppModule{Router: router, Path: "/users"}
 }

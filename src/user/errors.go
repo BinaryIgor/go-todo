@@ -11,6 +11,9 @@ const (
 	INVALID_USER_PASSWORD_ERROR = "INVALID_USER_PASSWORD"
 )
 
+var InvalidUserPasswordError = shared.NewValidationError(INVALID_USER_PASSWORD_ERROR,
+	"Invalid password. It needs to have at least 8 characters, one digit, one lower and one uppercase letter")
+
 type InvalidAuthTokenError struct {
 	shared.AppError
 }
@@ -28,9 +31,4 @@ func NewInvalidUserNameError(name string) shared.ValidationError {
 		fmt.Sprintln(name, "is not a valid user name.",
 			"It has to start with a letter, and can only have alphanumeric characters afterwards.",
 			"Min length is 3 and max is 30"))
-}
-
-func NewInvalidUserPasswordError() shared.ValidationError {
-	return shared.NewValidationError(INVALID_USER_PASSWORD_ERROR,
-		"Invalid password. It needs to have at least 8 characters, one digit, one lower and one uppercase letter")
 }
