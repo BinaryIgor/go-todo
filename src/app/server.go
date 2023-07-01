@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/google/uuid"
 )
 
@@ -99,7 +100,10 @@ func Start(options AppOptions, modules ...shared.AppModule) {
 
 	server = &http.Server{Addr: options.Address, Handler: router}
 
-	router.Use(middleware.Logger, middleware.Timeout(60*time.Second),
+	//TODO: proper cors config depending on the env
+	corsHandler := cors.AllowAll().Handler
+
+	router.Use(corsHandler, middleware.Logger, middleware.Timeout(60*time.Second),
 		recoveryMiddleware, authMiddleware)
 
 	for _, m := range modules {
