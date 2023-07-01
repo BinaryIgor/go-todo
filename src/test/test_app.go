@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"go-todo/app"
 	"go-todo/shared"
 )
@@ -8,7 +9,7 @@ import (
 func StartApp(modules ...shared.AppModule) int {
 	port := RandomPort()
 	app.Start(app.AppOptions{
-		Address: ":" + string(port),
+		Address: fmt.Sprintf(":%d", port),
 	}, modules...)
 	return port
 }

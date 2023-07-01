@@ -21,7 +21,7 @@ func NewUserRepository() inMemoryUserRepository {
 }
 
 func (r *inMemoryUserRepository) Create(user User) {
-
+	
 }
 
 func (r *inMemoryUserRepository) FindByName(name string) *User {

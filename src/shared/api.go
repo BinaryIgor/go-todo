@@ -7,8 +7,12 @@ type ApiError struct {
 	Message string   `json:"message"`
 }
 
-func NewApiError(errors []string, message string) ApiError {
+func NewApiErrorWithMultipleErrors(errors []string, message string) ApiError {
 	return ApiError{errors, message}
+}
+
+func NewApiError(error string, message string) ApiError {
+	return ApiError{[]string{error}, message}
 }
 
 func IsEndpointPublic(path string) bool {
