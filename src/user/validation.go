@@ -56,3 +56,12 @@ func IsPasswordValid(password string) bool {
 
 	return false
 }
+
+func ValidateUserNameAndPassword(name string, password string) {
+	if !IsNameValid(name) {
+		NewInvalidUserNameError(name).Throw()
+	}
+	if !IsPasswordValid(password) {
+		InvalidUserPasswordError.Throw()
+	}
+}

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type SignInResponse struct {
+type ApiSignInResponse struct {
 	Id uuid.UUID `json:"id"`
 }
 
@@ -26,7 +26,7 @@ func Module(tokensSecret string) shared.AppModule {
 
 	authTokensComponent := NewAuthTokensComponent(tokensSecretBytes)
 
-	signUpHandler := NewSignUpHandler(authTokensComponent)
+	signInHandler := SignInHandler{userRepository, authTokensComponent}
 
 	router := chi.NewRouter()
 
@@ -34,13 +34,13 @@ func Module(tokensSecret string) shared.AppModule {
 		var command CreateUserCommand
 		shared.MustReadJsonBody(r, &command)
 		userId := createUserHandler.Handle(command)
-		shared.WriteJsonResponse(w, 201, SignInResponse{userId})
+		shared.WriteJsonResponse(w, 201, ApiSignInResponse{userId})
 	})
 
 	router.Post("/sign-in", func(w http.ResponseWriter, r *http.Request) {
-		var command SignUpCommand
+		var command SignInCommand
 		shared.MustReadJsonBody(r, &command)
-		response := signUpHandler.Handle(command)
+		response := signInHandler.Handle(command)
 		shared.WriteJsonOkResponse(w, response)
 	})
 

@@ -14,17 +14,8 @@ type CreateUserHandler struct {
 }
 
 func (h *CreateUserHandler) Handle(command CreateUserCommand) uuid.UUID {
-	validateCommand(command)
+	ValidateUserNameAndPassword(command.Name, command.Password)
 	newId := uuid.New()
 	h.userRepository.Create(User{newId, command.Name, command.Password})
 	return newId
-}
-
-func validateCommand(command CreateUserCommand) {
-	if !IsNameValid(command.Name) {
-		NewInvalidUserNameError(command.Name).Throw()
-	}
-	if !IsPasswordValid(command.Password) {
-		InvalidUserPasswordError.Throw()
-	}
 }
