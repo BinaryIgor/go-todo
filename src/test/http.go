@@ -104,7 +104,11 @@ func NewExpectableResponse[T any](r http.Response, t *testing.T) ExpectableRespo
 }
 
 func (r *ExpectableResponse[T]) ExpectStatusCode(statusCode int) {
-	assert.Equal(r.t, r.StatusCode, statusCode)
+	assert.Equal(r.t, statusCode, r.StatusCode)
+}
+
+func (r *ExpectableResponse[T]) ExpectOkStatusCode() {
+	r.ExpectStatusCode(200)
 }
 
 func (r *ExpectableResponse[T]) ExpectJson(expected T) {

@@ -21,9 +21,14 @@ func NewUserRepository() UserRepository {
 }
 
 func (r *inMemoryUserRepository) Create(user User) {
-
+	r.db[user.Id] = user
 }
 
 func (r *inMemoryUserRepository) FindByName(name string) *User {
+	for _, v := range r.db {
+		if v.Name == name {
+			return &v
+		}
+	}
 	return nil
 }

@@ -52,11 +52,26 @@ func TestShouldReturnBadRequestWithInvalidCreateUserCommands(t *testing.T) {
 }
 
 func TestShouldAllowToCreateUserAndThenSignUp(t *testing.T) {
-	httpClient := test.NewHttpClient[SignInResponse](t, appPort)
+	createUserClient := test.NewHttpClient[SignUpResponse](t, appPort)
 
 	createUserCommand := CreateUserCommand{"User", "GoodEnoughPassword12"}
 
-	r := httpClient.PostJson("users/sign-up", createUserCommand)
-	r.ExpectStatusCode(201)
-	assert.NotNil(t, r.ExpectJsonBody().Id)
+	createUserResponse := createUserClient.PostJson("users/sign-up", createUserCommand)
+	createUserResponse.ExpectStatusCode(201)
+
+	userId := createUserResponse.ExpectJsonBody().Id
+
+	signInHttpClient := test.NewHttpClient[SignInResponse](t, appPort)
+
+	signInCommand := SignInCommand{createUserCommand.Name, createUserCommand.Password}
+
+	signUpResponse := signInHttpClient.PostJson("users/sign-in", signInCommand)
+	signUpResponse.ExpectOkStatusCode()
+
+	signInResponseBody := signUpResponse.ExpectJsonBody()
+	assert.Equal(t, userId, signInResponseBody.Id)
+	assert.Equal(t, signInCommand.Name, signInResponseBody.Name)
+	//TODO: test tokens!
+	// assert.Equal(t, userId, signInResponseBody.Name)
+
 }
