@@ -12,8 +12,10 @@ import (
 var appPort int
 var tokensSecret = "9123"
 
+var testClock = test.NewTestClock()
+
 func TestMain(m *testing.M) {
-	appPort = test.StartApp(Module(tokensSecret))
+	appPort = test.StartApp(Module(ModuleConfigFromEnvVariables(testClock)))
 	os.Exit(m.Run())
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-todo/app"
+	"go-todo/shared"
 	"go-todo/user"
 	"os"
 	"os/signal"
@@ -12,7 +13,7 @@ import (
 func main() {
 	fmt.Println("Starting TODO app!")
 
-	userModule := user.Module("9ab00d")
+	userModule := user.Module(user.ModuleConfigFromEnvVariables(&shared.UtcClock))
 
 	app.Start(app.AppOptions{Address: ":8080"}, userModule)
 

@@ -12,3 +12,12 @@ func RandomString(n int) string {
 	}
 	return string(b)
 }
+
+func RandomBytes(n int) []byte {
+	buff := make([]byte, n)
+	_, err := rand.Read(buff)
+	if err != nil {
+		panic(err)
+	}
+	return buff
+}
