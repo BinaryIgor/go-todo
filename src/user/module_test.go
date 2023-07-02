@@ -5,6 +5,8 @@ import (
 	"go-todo/test"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var appPort int
@@ -47,4 +49,14 @@ func TestShouldReturnBadRequestWithInvalidCreateUserCommands(t *testing.T) {
 		r.ExpectStatusCode(400)
 		r.ExpectJson(tc.response)
 	}
+}
+
+func TestShouldAllowToCreateUserAndThenSignUp(t *testing.T) {
+	httpClient := test.NewHttpClient[SignInResponse](t, appPort)
+
+	createUserCommand := CreateUserCommand{"User", "GoodEnoughPassword12"}
+
+	r := httpClient.PostJson("users/sign-up", createUserCommand)
+	r.ExpectStatusCode(201)
+	assert.NotNil(t, r.ExpectJsonBody().Id)
 }

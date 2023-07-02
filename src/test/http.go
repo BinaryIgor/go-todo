@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"net/http"
 	"testing"
@@ -107,14 +108,27 @@ func (r *ExpectableResponse[T]) ExpectStatusCode(statusCode int) {
 }
 
 func (r *ExpectableResponse[T]) ExpectJson(expected T) {
+	actual := r.ExpectJsonBody()
+
+	assert.Equal(r.t, r.Header.Get("Content-Type"), "application/json")
+	assert.Equal(r.t, expected, actual)
+}
+
+func (r *ExpectableResponse[T]) ExpectJsonBody() T {
 	var actual T
 
-	// var actual any
 	err := json.NewDecoder(r.Body).Decode(&actual)
 	if err != nil {
 		panic(err)
 	}
 
-	assert.Equal(r.t, r.Header.Get("Content-Type"), "application/json")
-	assert.Equal(r.t, expected, actual)
+	return actual
+}
+
+func (r *ExpectableResponse[T]) ExpectBodyContains(data ...string) {
+	bytes, _ := io.ReadAll(r.Body)
+	body := string(bytes)
+	for _, d := range data {
+		assert.Contains(r.t, body, d)
+	}
 }
